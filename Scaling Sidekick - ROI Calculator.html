@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Pricing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a202c;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .calculator-tabs {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #1e3c72;
+            border-color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel h2 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel h2 .icon {
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0 15px;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .input-wrapper .prefix {
+            color: #718096;
+            font-size: 18px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .input-wrapper input {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 18px;
+            font-weight: 500;
+            color: #2d3748;
+            padding: 15px 5px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tier-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tier-btn {
+            flex: 1;
+            padding: 15px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tier-btn:hover {
+            background: #edf2f7;
+        }
+
+        .tier-btn.active {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+
+        .tier-btn .tier-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .tier-btn .tier-price {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #2a5298;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(42, 82, 152, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #2a5298;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(42, 82, 152, 0.4);
+        }
+
+        .slider-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .results-panel {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: white;
+        }
+
+        .results-panel h2 {
+            color: white;
+        }
+
+        .result-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-label {
+            color: #cbd5e0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: #68d391;
+            margin-bottom: 5px;
+        }
+
+        .result-subtitle {
+            color: #a0aec0;
+            font-size: 14px;
+        }
+
+        .breakdown {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            color: #a0aec0;
+            font-size: 14px;
+        }
+
+        .breakdown-value {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .features-list {
+            background: rgba(42, 82, 152, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .features-list h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .feature-item::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .percentage-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .percentage-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .percentage-btn:hover {
+            background: #edf2f7;
+        }
+
+        .percentage-btn.active {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+
+        @media (max-width: 968px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                justify-content: center;
+            }
+            
+            .panel {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Live Pricing Calculator</h1>
+        <p>Calculate value and pricing in real-time during prospect calls</p>
+    </div>
+
+    <div class="calculator-tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('chatbot')">📚 GPT Chatbot</button>
+            <button class="tab-btn" onclick="switchTab('automation')">⚙️ Automation (One-Time)</button>
+            <button class="tab-btn" onclick="switchTab('retainer')">🔄 Automation Retainer</button>
+            <button class="tab-btn" onclick="switchTab('revshare')">🤝 Revenue Share</button>
+        </div>
+
+        <!-- GPT Chatbot Tab -->
+        <div id="chatbot" class="tab-content active">
+            <div class="calculator-grid">
+                <div class="panel">
+                    <h2><span class="icon">📚</span> GPT Chatbot Configuration</h2>
+                    
+                    <div class="tier-selector">
+                        <div class="tier-btn active" onclick="selectChatbotTier('starter')">
+                            <div class="tier-name">Starter</div>
+                            <div class="tier-price">$500-$750</div>
+                        </div>
+                        <div class="tier-btn" onclick="selectChatbotTier('standard')">
+                            <div class="tier-name">Standard</div>
+                            <div class="tier-price">$750-$1,500</div>
+                        </div>
+                        <div class="tier-btn" onclick="selectChatbotTier('advanced')">
+                            <div class="tier-name">Advanced</div>
+                            <div class="tier-price">$1,500-$3,000+</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Number of Pages to Refine & Integrate</label>
+                        <div class="slider-value" id="pagesValue">15</div>
+                        <input type="range" id="pagesSlider" min="10" max="200" value="15" oninput="updateChatbot()">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Custom Price Override (Optional)</label>
+                        <div class="input-wrapper">
+                            <span class="prefix">$</span>
+                            <input type="number" id="chatbotCustomPrice" placeholder="Leave blank for auto-pricing" oninput="updateChatbot()">
+                        </div>
+                    </div>
+
+                    <div class="features-list">
+                        <h3>What's Included:</h3>
+                        <div id="chatbotFeatures"></div>
+                    </div>
+                </div>
+
+                <div class="panel results-panel">
+                    <h2>💰 Pricing Calculation</h2>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Recommended Price</div>
+                        <div class="result-value" id="chatbotPrice">$625</div>
+                        <div class="result-subtitle" id="chatbotTierName">Starter Package</div>
+                    </div>
+
+                    <div class="breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Pages to Process</span>
+                            <span class="breakdown-value" id="chatbotPages">15 pages</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Complexity Level</span>
+                            <span class="breakdown-value" id="chatbotComplexity">Basic FAQ</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Delivery Time</span>
+                            <span class="breakdown-value">3-5 business days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation One-Time Tab -->
+        <div id="automation" class="tab-content">
+            <div class="calculator-grid">
+                <div class="panel">
+                    <h2><span class="icon">⚙️</span> Automation Project</h2>
+                    
+                    <div class="input-group">
+                        <label>Type of Automation</label>
+                        <div class="tier-selector">
+                            <div class="tier-btn active" onclick="selectAutomationType('revenue')">
+                                <div class="tier-name">Revenue Generating</div>
+                                <div class="tier-price">15-25% of impact</div>
+                            </div>
+                            <div class="tier-btn" onclick="selectAutomationType('efficiency')">
+                                <div class="tier-name">Operational Efficiency</div>
+                                <div class="tier-price">30-40% of savings</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="revenueInput">
+                        <div class="input-group">
+                            <label>Additional Leads Per Year</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="leadsPerYear" value="100" oninput="updateAutomation()">
+                                <span class="suffix">leads</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Average Value Per Converted Lead</label>
+                            <div class="input-wrapper">
+                                <span class="prefix">$</span>
+                                <input type="number" id="valuePerLead" value="1000" oninput="updateAutomation()">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Calculated Annual Revenue Impact</label>
+                            <div class="result-box" style="background: #f7fafc; border: 2px solid #48bb78; padding: 15px;">
+                                <div class="result-value" style="font-size: 28px; color: #2d3748;" id="calculatedRevenue">$100,000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="savingsInput" style="display: none;">
+                        <div class="input-group">
+                            <label>Hours Saved Per Week</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="hoursPerWeek" value="20" step="0.5" oninput="updateAutomation()">
+                                <span class="suffix">hours</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Cost Per Hour (Employee or Your Time)</label>
+                            <div class="input-wrapper">
+                                <span class="prefix">$</span>
+                                <input type="number" id="costPerHour" value="50" oninput="updateAutomation()">
+                                <span class="suffix">/hour</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Calculated Annual Cost Savings</label>
+                            <div class="result-box" style="background: #f7fafc; border: 2px solid #48bb78; padding: 15px;">
+                                <div class="result-value" style="font-size: 28px; color: #2d3748;" id="calculatedSavings">$52,000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Pricing Percentage</label>
+                        <div class="percentage-selector" id="percentageSelector">
+                            <button class="percentage-btn" onclick="selectPercentage(15)">15%</button>
+                            <button class="percentage-btn active" onclick="selectPercentage(20)">20%</button>
+                            <button class="percentage-btn" onclick="selectPercentage(25)">25%</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel results-panel">
+                    <h2>💰 Project Pricing</h2>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Recommended Project Fee</div>
+                        <div class="result-value" id="automationPrice">$20,000</div>
+                        <div class="result-subtitle" id="automationType">Revenue Generating Automation</div>
+                    </div>
+
+                    <div class="breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Annual Impact</span>
+                            <span class="breakdown-value" id="automationImpact">$100,000</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Pricing Model</span>
+                            <span class="breakdown-value" id="automationModel">20% of first-year impact</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">ROI for Client</span>
+                            <span class="breakdown-value" id="automationROI">400%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retainer Tab -->
+        <div id="retainer" class="tab-content">
+            <div class="calculator-grid">
+                <div class="panel">
+                    <h2><span class="icon">🔄</span> Automation Retainer</h2>
+                    
+                    <div class="tier-selector">
+                        <div class="tier-btn active" onclick="selectRetainerTier('essential')">
+                            <div class="tier-name">Essential</div>
+                            <div class="tier-price">$1,375/month</div>
+                        </div>
+                        <div class="tier-btn" onclick="selectRetainerTier('growth')">
+                            <div class="tier-name">Growth</div>
+                            <div class="tier-price">$3,250/month</div>
+                        </div>
+                        <div class="tier-btn" onclick="selectRetainerTier('scale')">
+                            <div class="tier-name">Scale</div>
+                            <div class="tier-price">$5,320/month</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Contract Duration (Months)</label>
+                        <div class="slider-value" id="retainerMonths">12</div>
+                        <input type="range" id="retainerDuration" min="3" max="24" value="12" oninput="updateRetainer()">
+                    </div>
+
+                    <div class="features-list">
+                        <h3>What's Included:</h3>
+                        <div id="retainerFeatures"></div>
+                    </div>
+                </div>
+
+                <div class="panel results-panel">
+                    <h2>💰 Retainer Value</h2>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Monthly Investment</div>
+                        <div class="result-value" id="retainerMonthly">$1,375</div>
+                        <div class="result-subtitle" id="retainerTierName">Essential Package</div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="result-label">Total Contract Value</div>
+                        <div class="result-value" id="retainerTotal">$16,500</div>
+                        <div class="result-subtitle">Over 12 months</div>
+                    </div>
+
+                    <div class="breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Hours per Month</span>
+                            <span class="breakdown-value" id="retainerHours">10 hours</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Effective Hourly Rate</span>
+                            <span class="breakdown-value" id="retainerHourly">$137.50/hour</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Total Hours Delivered</span>
+                            <span class="breakdown-value" id="retainerTotalHours">120 hours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Share Tab -->
+        <div id="revshare" class="tab-content">
+            <div class="calculator-grid">
+                <div class="panel">
+                    <h2><span class="icon">🤝</span> Revenue Share Partnership</h2>
+                    
+                    <div class="input-group">
+                        <label>Revenue Share Model</label>
+                        <div class="tier-selector">
+                            <div class="tier-btn active" onclick="selectRevShareModel('total')">
+                                <div class="tier-name">Total Revenue</div>
+                                <div class="tier-price">3-5%</div>
+                            </div>
+                            <div class="tier-btn" onclick="selectRevShareModel('attributed')">
+                                <div class="tier-name">Attribution-Based</div>
+                                <div class="tier-price">8-12%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Client's Annual Revenue</label>
+                        <div class="input-wrapper">
+                            <span class="prefix">$</span>
+                            <input type="number" id="clientRevenue" value="1000000" oninput="updateRevShare()">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Revenue Share Percentage</label>
+                        <div class="slider-value"><span id="revSharePercent">4</span>%</div>
+                        <input type="range" id="revShareSlider" min="3" max="5" value="4" step="0.5" oninput="updateRevShare()">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Partnership Duration (Months)</label>
+                        <div class="slider-value" id="revShareMonths">18</div>
+                        <input type="range" id="revShareDuration" min="12" max="24" value="18" oninput="updateRevShare()">
+                    </div>
+                </div>
+
+                <div class="panel results-panel">
+                    <h2>💰 Partnership Projections</h2>
+                    
+                    <div class="result-box">
+                        <div class="result-label">Monthly Revenue Share</div>
+                        <div class="result-value" id="revShareMonthly">$3,333</div>
+                        <div class="result-subtitle" id="revShareModelName">Total Revenue Model</div>
+                    </div>
+
+                    <div class="result-box">
+                        <div class="result-label">Total Partnership Value</div>
+                        <div class="result-value" id="revShareTotal">$60,000</div>
+                        <div class="result-subtitle">Over 18 months</div>
+                    </div>
+
+                    <div class="breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Annual Client Revenue</span>
+                            <span class="breakdown-value" id="revShareRevenue">$1,000,000</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Revenue Share Rate</span>
+                            <span class="breakdown-value" id="revShareRate">4%</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Partnership Duration</span>
+                            <span class="breakdown-value" id="revShareLength">18 months</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let state = {
+            chatbot: {
+                tier: 'starter',
+                pages: 15,
+                customPrice: null
+            },
+            automation: {
+                type: 'revenue',
+                percentage: 20
+            },
+            retainer: {
+                tier: 'essential',
+                months: 12
+            },
+            revShare: {
+                model: 'total',
+                percentage: 4,
+                months: 18
+            }
+        };
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // GPT Chatbot Functions
+        function selectChatbotTier(tier) {
+            state.chatbot.tier = tier;
+            document.querySelectorAll('#chatbot .tier-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tier-btn').classList.add('active');
+            
+            // Update pages slider based on tier
+            const slider = document.getElementById('pagesSlider');
+            if (tier === 'starter') {
+                slider.value = 15;
+            } else if (tier === 'standard') {
+                slider.value = 50;
+            } else {
+                slider.value = 100;
+            }
+            
+            updateChatbot();
+        }
+
+        function updateChatbot() {
+            const pages = document.getElementById('pagesSlider').value;
+            const customPrice = document.getElementById('chatbotCustomPrice').value;
+            
+            document.getElementById('pagesValue').textContent = pages;
+            
+            // Determine tier based on pages
+            let tier, price, tierName, complexity;
+            if (pages <= 25) {
+                tier = 'starter';
+                tierName = 'Starter Package';
+                complexity = 'Basic FAQ or internal knowledge assistant';
+                price = 500 + (pages - 10) * 16.67; // Linear scale from $500-750
+            } else if (pages <= 75) {
+                tier = 'standard';
+                tierName = 'Standard Package';
+                complexity = 'Robust internal training or mid-size knowledge base';
+                price = 750 + (pages - 26) * 15; // Linear scale from $750-1500
+            } else {
+                tier = 'advanced';
+                tierName = 'Advanced Package';
+                complexity = 'Complex internal SOPs, detailed answer engine';
+                price = 1500 + (pages - 76) * 12; // Linear scale from $1500+
+            }
+            
+            // Use custom price if provided
+            if (customPrice) {
+                price = parseFloat(customPrice);
+            }
+            
+            // Update UI
+            document.getElementById('chatbotPrice').textContent = formatCurrency(price);
+            document.getElementById('chatbotTierName').textContent = tierName;
+            document.getElementById('chatbotPages').textContent = `${pages} pages`;
+            document.getElementById('chatbotComplexity').textContent = complexity;
+            
+            // Update features
+            const features = {
+                starter: [
+                    '10-25 pages refined & integrated',
+                    'Basic FAQ or internal knowledge assistant',
+                    'Proprietary document refinement method',
+                    'Quick deployment (3-5 days)'
+                ],
+                standard: [
+                    '26-75 pages refined & integrated',
+                    'Robust internal training system',
+                    'Mid-size knowledge base',
+                    'Advanced query handling',
+                    'Proprietary document refinement method'
+                ],
+                advanced: [
+                    '76-150+ pages refined & integrated',
+                    'Complex internal SOPs integration',
+                    'Detailed answer engine',
+                    'Comprehensive content assistant',
+                    'Multi-department knowledge base',
+                    'Proprietary document refinement method'
+                ]
+            };
+            
+            const featuresHtml = features[tier].map(f => 
+                `<div class="feature-item">${f}</div>`
+            ).join('');
+            document.getElementById('chatbotFeatures').innerHTML = featuresHtml;
+        }
+
+        // Automation Functions
+        function selectAutomationType(type) {
+            state.automation.type = type;
+            document.querySelectorAll('#automation .tier-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tier-btn').classList.add('active');
+            
+            if (type === 'revenue') {
+                document.getElementById('revenueInput').style.display = 'block';
+                document.getElementById('savingsInput').style.display = 'none';
+                
+                // Update percentage buttons
+                document.getElementById('percentageSelector').innerHTML = `
+                    <button class="percentage-btn" onclick="selectPercentage(15)">15%</button>
+                    <button class="percentage-btn active" onclick="selectPercentage(20)">20%</button>
+                    <button class="percentage-btn" onclick="selectPercentage(25)">25%</button>
+                `;
+                state.automation.percentage = 20;
+            } else {
+                document.getElementById('revenueInput').style.display = 'none';
+                document.getElementById('savingsInput').style.display = 'block';
+                
+                // Update percentage buttons
+                document.getElementById('percentageSelector').innerHTML = `
+                    <button class="percentage-btn" onclick="selectPercentage(30)">30%</button>
+                    <button class="percentage-btn active" onclick="selectPercentage(35)">35%</button>
+                    <button class="percentage-btn" onclick="selectPercentage(40)">40%</button>
+                `;
+                state.automation.percentage = 35;
+            }
+            
+            updateAutomation();
+        }
+
+        function selectPercentage(percent) {
+            state.automation.percentage = percent;
+            document.querySelectorAll('.percentage-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            updateAutomation();
+        }
+
+        function updateAutomation() {
+            const type = state.automation.type;
+            const percentage = state.automation.percentage;
+            let annualImpact, price, modelText;
+            
+            if (type === 'revenue') {
+                annualImpact = parseFloat(document.getElementById('annualRevenue').value) || 0;
+                price = annualImpact * (percentage / 100);
+                modelText = `${percentage}% of first-year revenue impact`;
+                document.getElementById('automationType').textContent = 'Revenue Generating Automation';
+            } else {
+                annualImpact = parseFloat(document.getElementById('annualSavings').value) || 0;
+                price = annualImpact * (percentage / 100);
+                modelText = `${percentage}% of annual cost savings`;
+                document.getElementById('automationType').textContent = 'Operational Efficiency Automation';
+            }
+            
+            const roi = annualImpact > 0 ? Math.round(((annualImpact - price) / price) * 100) : 0;
+            
+            document.getElementById('automationPrice').textContent = formatCurrency(price);
+            document.getElementById('automationImpact').textContent = formatCurrency(annualImpact);
+            document.getElementById('automationModel').textContent = modelText;
+            document.getElementById('automationROI').textContent = `${roi}%`;
+        }
+
+        // Retainer Functions
+        function selectRetainerTier(tier) {
+            state.retainer.tier = tier;
+            document.querySelectorAll('#retainer .tier-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tier-btn').classList.add('active');
+            updateRetainer();
+        }
+
+        function updateRetainer() {
+            const tier = state.retainer.tier;
+            const months = document.getElementById('retainerDuration').value;
+            
+            document.getElementById('retainerMonths').textContent = months;
+            
+            const tiers = {
+                essential: {
+                    name: 'Essential Package',
+                    price: 1375,
+                    hours: 10,
+                    hourly: 137.50,
+                    features: [
+                        'Unlimited Maintenance & troubleshooting',
+                        '1 refinement or new automation per month',
+                        'Monthly snapshot report',
+                        '1 hour Q&A/Consulting',
+                        'Standard support response time'
+                    ]
+                },
+                growth: {
+                    name: 'Growth Package',
+                    price: 3250,
+                    hours: 30,
+                    hourly: 108.33,
+                    features: [
+                        'Everything in Essential',
+                        '2 refinements or new automations per month',
+                        'Monthly strategy call (30-60 min)',
+                        '2 hours Q&A/Consulting',
+                        'Priority support'
+                    ]
+                },
+                scale: {
+                    name: 'Scale Package',
+                    price: 5320,
+                    hours: 60,
+                    hourly: 88.67,
+                    features: [
+                        'Everything in Growth',
+                        '3 refinements or new automations per month',
+                        'Unlimited Q&A/Consulting',
+                        '24-hour priority response',
+                        'Quarterly bonus automation or GPT'
+                    ]
+                }
+            };
+            
+            const selectedTier = tiers[tier];
+            const totalValue = selectedTier.price * months;
+            const totalHours = selectedTier.hours * months;
+            
+            document.getElementById('retainerMonthly').textContent = formatCurrency(selectedTier.price);
+            document.getElementById('retainerTierName').textContent = selectedTier.name;
+            document.getElementById('retainerTotal').textContent = formatCurrency(totalValue);
+            document.getElementById('retainerHours').textContent = `${selectedTier.hours} hours`;
+            document.getElementById('retainerHourly').textContent = `${selectedTier.hourly}/hour`;
+            document.getElementById('retainerTotalHours').textContent = `${totalHours} hours`;
+            
+            // Update features
+            const featuresHtml = selectedTier.features.map(f => 
+                `<div class="feature-item">${f}</div>`
+            ).join('');
+            document.getElementById('retainerFeatures').innerHTML = featuresHtml;
+        }
+
+        // Revenue Share Functions
+        function selectRevShareModel(model) {
+            state.revShare.model = model;
+            document.querySelectorAll('#revshare .tier-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tier-btn').classList.add('active');
+            
+            const slider = document.getElementById('revShareSlider');
+            if (model === 'total') {
+                slider.min = 3;
+                slider.max = 5;
+                slider.value = 4;
+                state.revShare.percentage = 4;
+            } else {
+                slider.min = 8;
+                slider.max = 12;
+                slider.value = 10;
+                state.revShare.percentage = 10;
+            }
+            
+            updateRevShare();
+        }
+
+        function updateRevShare() {
+            const clientRevenue = parseFloat(document.getElementById('clientRevenue').value) || 0;
+            const percentage = parseFloat(document.getElementById('revShareSlider').value);
+            const months = document.getElementById('revShareDuration').value;
+            
+            state.revShare.percentage = percentage;
+            state.revShare.months = months;
+            
+            document.getElementById('revSharePercent').textContent = percentage;
+            document.getElementById('revShareMonths').textContent = months;
+            
+            const monthlyShare = (clientRevenue * (percentage / 100)) / 12;
+            const totalShare = monthlyShare * months;
+            
+            const modelName = state.revShare.model === 'total' ? 
+                'Total Revenue Model (3-5%)' : 
+                'Attribution-Based Model (8-12%)';
+            
+            document.getElementById('revShareMonthly').textContent = formatCurrency(monthlyShare);
+            document.getElementById('revShareModelName').textContent = modelName;
+            document.getElementById('revShareTotal').textContent = formatCurrency(totalShare);
+            document.getElementById('revShareRevenue').textContent = formatCurrency(clientRevenue);
+            document.getElementById('revShareRate').textContent = `${percentage}%`;
+            document.getElementById('revShareLength').textContent = `${months} months`;
+        }
+
+        // Initialize all calculators on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateChatbot();
+            updateAutomation();
+            updateRetainer();
+            updateRevShare();
+        });
+    </script>
+</body>
+</html>
