@@ -143,6 +143,12 @@
             margin-right: 5px;
         }
 
+        .input-wrapper .suffix {
+            color: #718096;
+            font-size: 16px;
+            margin-left: 5px;
+        }
+
         .input-wrapper input {
             background: transparent;
             border: none;
@@ -706,7 +712,11 @@
             },
             automation: {
                 type: 'revenue',
-                percentage: 20
+                percentage: 20,
+                leadsPerYear: 100,
+                valuePerLead: 1000,
+                hoursPerWeek: 20,
+                costPerHour: 50
             },
             retainer: {
                 tier: 'essential',
@@ -880,12 +890,26 @@
             let annualImpact, price, modelText;
             
             if (type === 'revenue') {
-                annualImpact = parseFloat(document.getElementById('annualRevenue').value) || 0;
+                // Calculate revenue impact from leads and value
+                const leadsPerYear = parseFloat(document.getElementById('leadsPerYear').value) || 0;
+                const valuePerLead = parseFloat(document.getElementById('valuePerLead').value) || 0;
+                annualImpact = leadsPerYear * valuePerLead;
+                
+                // Update calculated revenue display
+                document.getElementById('calculatedRevenue').textContent = formatCurrency(annualImpact);
+                
                 price = annualImpact * (percentage / 100);
                 modelText = `${percentage}% of first-year revenue impact`;
                 document.getElementById('automationType').textContent = 'Revenue Generating Automation';
             } else {
-                annualImpact = parseFloat(document.getElementById('annualSavings').value) || 0;
+                // Calculate savings from hours and cost
+                const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
+                const costPerHour = parseFloat(document.getElementById('costPerHour').value) || 0;
+                annualImpact = hoursPerWeek * costPerHour * 52; // 52 weeks in a year
+                
+                // Update calculated savings display
+                document.getElementById('calculatedSavings').textContent = formatCurrency(annualImpact);
+                
                 price = annualImpact * (percentage / 100);
                 modelText = `${percentage}% of annual cost savings`;
                 document.getElementById('automationType').textContent = 'Operational Efficiency Automation';
